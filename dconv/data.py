@@ -39,6 +39,7 @@ class OutFormat(Minifmtable):
         'fieldnames': (str_v, ''),
         'module': (str_v, [], 1),
         'assertion': (str_v, [], 1),
+        'def': (str_v, [], 1),
         'const': (str_v, [], 1),
         'condition': (str_v, [], 1),
         'field': (str_v, [], 1),
@@ -48,6 +49,7 @@ class OutFormat(Minifmtable):
         'fieldsep': (str_v, '\t'),
         'prologue': (str_v, [], 1),
         'epilogue': (str_v, [], 1),
+        'filename_ext': (str_v, None),
     }
 
 
@@ -112,13 +114,16 @@ class Data(object):
                 return
             else:
                 name = name.strip().replace(' ', '_')
-                value = value.strip()
+                num = value.strip()
                 try:
-                    num, unit = value.split(None, 1)
-                    value = float(num)
+                    num, unit = num.split(None, 1)
                 except ValueError:
                     pass
-                self.defs[name.strip()] = value
+                try:
+                    num = float(num)
+                except:
+                    pass
+                self.defs[name.strip()] = num
 
         # `skipping` can be
         # * 0   if skipping is over
@@ -137,18 +142,16 @@ class Data(object):
             if fmt.comments != 'none':
                 if line.lstrip().startswith(fmt.comments):
                     continue
+            if skipping == -1:
+                if fmt.skip_until in line:
+                    if fmt.extra_skip:
+                        skipping = fmt.extra_skip
+                    else:
+                        skipping = 0
             if skipping:
-                if skipping == -1:
-                    if fmt.skip_until in line:
-                        if fmt.extra_skip:
-                            skipping = fmt.extra_skip
-                            continue
-                        else:
-                            skipping = 0
-                else:
+                if skipping > 0:
                     skipping -= 1
 
-            if skipping:
                 if fmt.defs == 'colon' or fmt.defs == 'auto':
                     add_def(line, ':')
                 if fmt.defs == 'equals' or fmt.defs == 'auto':
@@ -171,7 +174,7 @@ class Data(object):
                 flds = [x.strip() for x in fmt.fields.split(',')]
                 if self.numfields and len(flds) != self.numfields:
                     err('inconsistent number of fields in headers and '
-                        'fields property')
+                        'fields property: %s vs %s' % (self.numfields, len(flds)))
                 self.headers['names'] = flds
 
             if 'names' not in self.headers:
@@ -182,14 +185,22 @@ class Data(object):
                 break
 
             try:
-                record = map(float, splitline(line))
+                line = splitline(line)
             except Exception, exc:
                 if fmt.end == 'auto':
                     break
                 err('error splitting fields:\n%s' % fmt_ex(exc))
+            record = []
+            for d in line:
+                try:
+                    record.append(float(d))
+                except ValueError:
+                    record.append(d)
             if not self.numfields:
                 self.numfields = len(record)
             elif len(record) != self.numfields:
+                if fmt.end == 'auto':
+                    break
                 warn('inconsistent number of fields, ignoring record')
                 continue
             self.data.append(record)
@@ -238,6 +249,8 @@ class Data(object):
                     if not key.startswith('_'):
                         commoncontext[key] = getattr(mod, key)
 
+        defs = Namespace(self.defs)
+
         # Some general items, useful for const calculations
         commoncontext.update({'records': records,
                               'numrecords': self.numrecords,
@@ -245,8 +258,19 @@ class Data(object):
                               'fieldnames': self.headers['names'],
                               'headers': self.headers,
                               'skipped': self.skipped,
-                              'defs': Namespace(self.defs),
+                              'defs': defs,
                               })
+
+        # First, execute all def statements
+        for defex in getattr(fmt, 'def'):
+            try:
+                local = {}
+                exec defex in commoncontext, local
+            except Exception, exc:
+                err('error executing def statement %r:\n%s' %
+                    (defex, fmt_ex(exc)))
+            else:
+                defs.update(local)
 
         # Now, execute all const statements
         for constex in fmt.const:
@@ -311,6 +335,17 @@ class Data(object):
             context = commoncontext.copy()
             context.update(reccontext)
 
+            # calculate fields
+
+            for fieldex in fmt.field:
+                try:
+                    exec fieldex in context
+                except Exception, exc:
+                    err('error executing field statement %r:\n%s' %
+                        (fieldex, fmt_ex(exc)))
+
+            # evaluate conditions
+
             cont = 0
             for condex in fmt.condition:
                 try:
@@ -326,13 +361,6 @@ class Data(object):
             if cont:
                 continue
             c += 1
-
-            for fieldex in fmt.field:
-                try:
-                    exec fieldex in context
-                except Exception, exc:
-                    err('error executing field statement %r:\n%s' %
-                        (fieldex, fmt_ex(exc)))
 
             try:
                 destination.write(fmt.fieldsep.join(

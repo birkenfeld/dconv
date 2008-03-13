@@ -1,6 +1,6 @@
 """
-    d2d data format conversion utility
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    dconv data format conversion utility
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     :author: Georg Brandl
     :license: GPL
@@ -70,5 +70,5 @@ def conv(source, informat, outformat, warnfunc, errfunc):
 
 
 if __name__ == '__main__':
-    import d2d.cmdline
-    sys.exit(d2d.cmdline.main(sys.argv))
+    import dconv.cmdline
+    sys.exit(dconv.cmdline.main(sys.argv))

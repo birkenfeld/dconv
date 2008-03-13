@@ -6,145 +6,62 @@
     :license: GPL
 """
 
-import sys, os
+import sys, os, time
 from os import path
+
 from qt import *
 
-from dconv.ui_convdialog import *
+from dconv.convdialog_ui import *
 from dconv.util import fmt_ex, xdir
-from dconv import informats, outformats, convfile
-
-class DlgPresets(object):
-    def __init__(self, group, ctls):
-        self.group = group
-        self.ctls = ctls
-
-    def load(self):
-        settings = QSettings(QSettings.Ini)
-        settings.setPath('MIRA', self.group)
-        for (ctl, default) in self.ctls:
-            entry = 'presets/' + ctl.name()
-            if isinstance(default, int):
-                val, ok = settings.readNumEntry(entry, default)
-            else:
-                val, ok = settings.readEntry(entry, default)
-            try:
-                getattr(self, 'set_' + ctl.__class__.__name__)(ctl, val)
-            except:
-                pass
-
-    def save(self):
-        settings = QSettings(QSettings.Ini)
-        settings.setPath('MIRA', self.group)
-        for (ctl, _) in self.ctls:
-            entry = 'presets/' + ctl.name()
-            try:
-                val = getattr(self, 'get_' + ctl.__class__.__name__)(ctl)
-                settings.writeEntry(entry, val)
-            except:
-                pass
-
-    def set_QLineEdit(self, ctl, val):
-        ctl.setText(val)
-    def set_QListBox(self, ctl, val):
-        ctl.setSelected(ctl.findItem(val), 1)
-    def set_QListView(self, ctl, val):
-        ctl.setSelected(ctl.findItem(val, 0), 1)
-    def set_QComboBox(self, ctl, val):
-        for i in range(ctl.count()):
-            if ctl.text(i) == val:
-                ctl.setCurrentItem(i)
-                return
-    def set_QTextEdit(self, ctl, val):
-        ctl.setText(val)
-    def set_QTabWidget(self, ctl, val):
-        ctl.setCurrentPage(val)
-
-    def get_QLineEdit(self, ctl):
-        return ctl.text()
-    def get_QListBox(self, ctl):
-        return ctl.selectedItem().text()
-    def get_QListView(self, ctl):
-        return ctl.selectedItem().text(0)
-    def get_QComboBox(self, ctl):
-        return ctl.currentText()
-    def get_QTextEdit(self, ctl):
-        return ctl.text()
-    def get_QTabWidget(self, ctl):
-        return ctl.currentPageIndex()
+from dconv.uitools import *
+from dconv.data import OutFormat
+from dconv import informats, outformats, convfile, lookup
 
 
-class ConvDialog(ConvDialogGUI):
+class ConvDialog(ConvDialogUI):
     def __init__(self, parent=None):
-        ConvDialogGUI.__init__(self, parent=parent)
+        ConvDialogUI.__init__(self, parent=parent)
         self.infmt.clear()
         self.infmt.insertStrList(xdir(informats))
         self.outfmt.header().hide()
         self.outfmt.clear()
         for fmt in xdir(outformats):
-        #    self.outfmt.insertItem(QCheckListItem(
-        #        self.outfmt, fmt, QCheckListItem.CheckBox))
             self.outfmt.insertItem(QListViewItem(self.outfmt, fmt))
         self.outfmt.setSelected(self.outfmt.firstChild(), 1)
 
         self.indirList = []
         self._warnings = 0
         self._errors = 0
+        self.lasttab = None
 
-        self.presets = DlgPresets('d2d',
+        dirdefault = "/data/%s" % time.strftime('%Y')
+
+        self.presets = DlgPresets('dconv',
             [(self.input, ''), (self.output, ''),
              (self.multiprefix, ''), (self.multiext, ''),
-             (self.multidir, ''), (self.multioutdir, ''),
+             (self.multidir, dirdefault), (self.multioutdir, ''),
              (self.infmt, 'mira'), (self.outfmt, ''),
              (self.properties, ''), (self.tabs, 0)])
         self.presets.load()
 
     def about(self):
         QMessageBox.about(self, "About this tool",
-                          "d2d data file conversion tool,\n"
+                          "dconv data file conversion tool,\n"
                           "written 2008 by Georg Brandl.")
 
     def selInput(self):
-        previous = str(self.input.text())
-        if previous:
-            startdir = path.dirname(previous)
-        else:
-            startdir = '.'
-        fname = QFileDialog.getOpenFileName(startdir, 'All files (*)',
-                                            self, 'open file dialog',
-                                            'Choose an input file')
-        if fname:
-            self.input.setText(fname)
+        selectInputFile(self.input, self)
 
     def selOutput(self):
-        previous = str(self.output.text())
-        if previous:
-            startdir = path.dirname(previous)
-        else:
-            startdir = '.'
-        fname = QFileDialog.getSaveFileName(startdir, 'All files (*)',
-                                            self, 'save file dialog',
-                                            'Choose an output filename')
-        if fname:
-            self.output.setText(fname)
+        selectOutputFile(self.output, self)
 
     def selDir(self):
-        previous = str(self.multidir.text())
-        startdir = previous or '.'
-        fname = QFileDialog.getExistingDirectory(
-            startdir, self, 'save file dialog',
-            'Choose an input directory')
-        if fname:
-            self.multidir.setText(fname)
+        selectDirectory(self.multidir, self,
+                        'Choose an input directory')
 
     def selOutDir(self):
-        previous = str(self.multioutdir.text())
-        startdir = previous or '.'
-        fname = QFileDialog.getExistingDirectory(
-            startdir, self, 'save file dialog',
-            'Choose an output directory')
-        if fname:
-            self.multioutdir.setText(fname)
+        selectDirectory(self.multioutdir, self,
+                        'Choose an output directory')
 
     def indirChanged(self):
         indir = str(self.multidir.text())
@@ -166,30 +83,7 @@ class ConvDialog(ConvDialogGUI):
         fname = path.join(str(self.multidir.text()), fname)
         if not path.isfile(fname):
             return
-        f = open(fname)
-        contents = f.read()
-        f.close()
-        qd = QDialog(self, 'PreviewDlg', True)
-        qd.setCaption('File preview')
-        qd.resize(QSize(500, 500))
-        lay = QVBoxLayout(qd, 11, 6, 'playout')
-        lb = QLabel(qd, 'label')
-        lb.setText('Viewing %s:' % fname)
-        lay.addWidget(lb)
-        tx = QTextEdit(qd, 'preview')
-        tx.setReadOnly(1)
-        tx.setText(contents)
-        font = QFont(tx.font())
-        font.setFamily('monospace')
-        tx.setFont(font)
-        lay.addWidget(tx)
-        btn = QPushButton(qd, 'ok')
-        btn.setAutoDefault(1)
-        btn.setDefault(1)
-        btn.setText('Close')
-        qd.connect(btn, SIGNAL('clicked()'), qd.accept)
-        lay.addWidget(btn, 0, QWidget.AlignRight)
-        qd.show()
+        viewTextFile(fname, self)
 
     def refreshClicked(self):
         self.indirChanged()
@@ -198,6 +92,15 @@ class ConvDialog(ConvDialogGUI):
         self.multifiles.selectAll(True)
     def selNone(self):
         self.multifiles.selectAll(False)
+
+    def outfmtSelected(self, item):
+        format = str(item.text(0))
+        try:
+            format = lookup(format, OutFormat)
+        except:
+            return
+        if format.filename_ext:
+            self.multiext.setText(format.filename_ext)
 
     def outfmtClicked(self, item):
         format = str(item.text(0))
@@ -209,15 +112,27 @@ class ConvDialog(ConvDialogGUI):
         self.presets.save()
         tab = self.tabs.currentPageIndex()
         if tab > 1:
-            QMessageBox.information(self, 'Select conversion mode',
-                                    'Please select a "Convert ..." tab.')
+            if self.lasttab is None:
+                QMessageBox.information(self, 'Select conversion mode',
+                                        'Please select a "Convert ..." tab.')
+                return
+            tab = self.lasttab
 
         infmt = str(self.infmt.currentText())
         outfmt = str(self.outfmt.selectedItem().text(0))
         props = str(self.properties.text()).splitlines()
-        outfmt = getattr(outformats, outfmt)
-        outfmt += '\n' + '\n'.join(props)
+        aprops = [] # put before the outfmt ones
+        bprops = [] # put after the outfmt ones
+        for prop in props:
+            if prop.strip().startswith('!'):
+                aprops.append(prop.strip()[1:])
+            else:
+                bprops.append(prop)
+        outfmt = '\n'.join(aprops) + '\n' + \
+                 getattr(outformats, outfmt) + '\n' + \
+                 '\n'.join(bprops)
 
+        self.lasttab = tab
         if tab == 0:
             self.convertOne(infmt, outfmt)
         elif tab == 1:
@@ -310,12 +225,9 @@ class ConvDialog(ConvDialogGUI):
 
 
 def main():
-    a = QApplication(sys.argv)
-    QObject.connect(a, SIGNAL('lastWindowClosed()'), a, SLOT('quit()'))
-    w = ConvDialog()
-    a.setMainWidget(w)
-    w.show()
-    a.exec_loop()
+    runDlgStandalone(ConvDialog)
 
 if __name__ == '__main__':
     main()
+
+

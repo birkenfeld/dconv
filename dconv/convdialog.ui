@@ -1,8 +1,8 @@
 <!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>ConvDialogGUI</class>
+<class>ConvDialogUI</class>
 <widget class="QDialog">
     <property name="name">
-        <cstring>ConvDialog</cstring>
+        <cstring>ConvDialogUI</cstring>
     </property>
     <property name="geometry">
         <rect>
@@ -607,86 +607,92 @@
     <connection>
         <sender>ok</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>accept()</slot>
     </connection>
     <connection>
         <sender>cancel</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>reject()</slot>
     </connection>
     <connection>
         <sender>selectDir</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>selDir()</slot>
     </connection>
     <connection>
         <sender>multiprefix</sender>
         <signal>textChanged(const QString&amp;)</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>prefixChanged()</slot>
     </connection>
     <connection>
         <sender>selectOutDir</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>selOutDir()</slot>
     </connection>
     <connection>
         <sender>selectInput</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>selInput()</slot>
     </connection>
     <connection>
         <sender>selectOutput</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>selOutput()</slot>
     </connection>
     <connection>
         <sender>multidir</sender>
         <signal>textChanged(const QString&amp;)</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>indirChanged()</slot>
     </connection>
     <connection>
         <sender>selectAll</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>selAll()</slot>
     </connection>
     <connection>
         <sender>selectNone</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>selNone()</slot>
     </connection>
     <connection>
         <sender>outfmt</sender>
         <signal>doubleClicked(QListViewItem*)</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>outfmtClicked(QListViewItem*)</slot>
     </connection>
     <connection>
         <sender>aboutBtn</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>about()</slot>
     </connection>
     <connection>
         <sender>multifiles</sender>
         <signal>doubleClicked(QListBoxItem*)</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>fileClicked(QListBoxItem*)</slot>
     </connection>
     <connection>
         <sender>refresh</sender>
         <signal>clicked()</signal>
-        <receiver>ConvDialog</receiver>
+        <receiver>ConvDialogUI</receiver>
         <slot>refreshClicked()</slot>
+    </connection>
+    <connection>
+        <sender>outfmt</sender>
+        <signal>selectionChanged(QListViewItem*)</signal>
+        <receiver>ConvDialogUI</receiver>
+        <slot>outfmtSelected(QListViewItem*)</slot>
     </connection>
 </connections>
 <tabstops>
@@ -708,9 +714,6 @@
     <tabstop>ok</tabstop>
     <tabstop>cancel</tabstop>
 </tabstops>
-<includes>
-    <include location="local" impldecl="in implementation">convdialog.ui.h</include>
-</includes>
 <slots>
     <slot>selInput()</slot>
     <slot>selOutput()</slot>
@@ -724,6 +727,7 @@
     <slot>about()</slot>
     <slot>fileClicked( QListBoxItem * item )</slot>
     <slot>refreshClicked()</slot>
+    <slot>outfmtSelected(QListViewItem *item)</slot>
 </slots>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

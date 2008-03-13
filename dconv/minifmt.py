@@ -52,7 +52,7 @@ class Minifmtable(object):
         self = cls()
 
         def err(msg):
-            raise  '%s, line %d: %s' % (sourcename, i+1, msg)
+            raise  '%s, line %d: %s' % (sourcename, i, msg)
 
         if isinstance(source, basestring):
             source = source.splitlines()
@@ -60,10 +60,15 @@ class Minifmtable(object):
         else:
             sourcename = source.name
 
-        for i, line in enumerate(source):
+        i = 0
+        for line in source:
+            i += 1
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
+            if line.endswith('\\'):
+                line += source.next()
+                i += 1
 
             try:
                 prop, val = line.split(':', 1)

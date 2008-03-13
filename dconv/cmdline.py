@@ -15,11 +15,12 @@ def writemsg(msg):
     sys.stderr.write(msg + '\n')
     sys.stderr.flush()
 
-usage = """\
-Usage: d2d -i informat -o outformat infile
+USAGE = """\
+Usage: %s -i informat -o outformat infile
 """
 
 def main(args):
+    usage = USAGE % args[0]
     try:
         opts, args = getopt.getopt(args[1:], "hi:o:")
     except getopt.GetoptError, err:
