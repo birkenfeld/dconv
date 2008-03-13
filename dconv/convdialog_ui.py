@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'convdialog.ui'
 #
-# Created: Mon Feb 18 13:18:53 2008
+# Created: Tue Feb 19 10:10:28 2008
 #      by: The PyQt User Interface Compiler (pyuic) 3.14.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -11,16 +11,16 @@
 from qt import *
 
 
-class ConvDialogGUI(QDialog):
+class ConvDialogUI(QDialog):
     def __init__(self,parent = None,name = None,modal = 0,fl = 0):
         QDialog.__init__(self,parent,name,modal,fl)
 
         if not name:
-            self.setName("ConvDialog")
+            self.setName("ConvDialogUI")
 
         self.setSizeGripEnabled(0)
 
-        ConvDialogLayout = QVBoxLayout(self,11,5,"ConvDialogLayout")
+        ConvDialogUILayout = QVBoxLayout(self,11,5,"ConvDialogUILayout")
 
         self.tabs = QTabWidget(self,"tabs")
 
@@ -144,7 +144,7 @@ class ConvDialogGUI(QDialog):
         self.messages.setReadOnly(1)
         TabPageLayout.addWidget(self.messages)
         self.tabs.insertTab(self.TabPage,QString.fromLatin1(""))
-        ConvDialogLayout.addWidget(self.tabs)
+        ConvDialogUILayout.addWidget(self.tabs)
 
         layout9 = QHBoxLayout(None,0,6,"layout9")
 
@@ -154,7 +154,7 @@ class ConvDialogGUI(QDialog):
 
         self.infmt = QComboBox(0,self,"infmt")
         layout9.addWidget(self.infmt)
-        ConvDialogLayout.addLayout(layout9)
+        ConvDialogUILayout.addLayout(layout9)
 
         layout10_2 = QGridLayout(None,1,1,0,6,"layout10_2")
 
@@ -180,9 +180,9 @@ class ConvDialogGUI(QDialog):
         self.outfmt.setResizeMode(QListView.AllColumns)
 
         layout10_2.addWidget(self.outfmt,1,0)
-        ConvDialogLayout.addLayout(layout10_2)
+        ConvDialogUILayout.addLayout(layout10_2)
         spacer4 = QSpacerItem(20,2,QSizePolicy.Minimum,QSizePolicy.Fixed)
-        ConvDialogLayout.addItem(spacer4)
+        ConvDialogUILayout.addItem(spacer4)
 
         layout11 = QHBoxLayout(None,0,6,"layout11")
 
@@ -199,7 +199,7 @@ class ConvDialogGUI(QDialog):
         self.cancel = QPushButton(self,"cancel")
         self.cancel.setAutoDefault(1)
         layout11.addWidget(self.cancel)
-        ConvDialogLayout.addLayout(layout11)
+        ConvDialogUILayout.addLayout(layout11)
 
         self.languageChange()
 
@@ -220,6 +220,7 @@ class ConvDialogGUI(QDialog):
         self.connect(self.aboutBtn,SIGNAL("clicked()"),self.about)
         self.connect(self.multifiles,SIGNAL("doubleClicked(QListBoxItem*)"),self.fileClicked)
         self.connect(self.refresh,SIGNAL("clicked()"),self.refreshClicked)
+        self.connect(self.outfmt,SIGNAL("selectionChanged(QListViewItem*)"),self.outfmtSelected)
 
         self.setTabOrder(self.tabs,self.input)
         self.setTabOrder(self.input,self.selectInput)
@@ -277,40 +278,43 @@ class ConvDialogGUI(QDialog):
 
 
     def selInput(self):
-        print "ConvDialogGUI.selInput(): Not implemented yet"
+        print "ConvDialogUI.selInput(): Not implemented yet"
 
     def selOutput(self):
-        print "ConvDialogGUI.selOutput(): Not implemented yet"
+        print "ConvDialogUI.selOutput(): Not implemented yet"
 
     def selDir(self):
-        print "ConvDialogGUI.selDir(): Not implemented yet"
+        print "ConvDialogUI.selDir(): Not implemented yet"
 
     def prefixChanged(self):
-        print "ConvDialogGUI.prefixChanged(): Not implemented yet"
+        print "ConvDialogUI.prefixChanged(): Not implemented yet"
 
     def selOutDir(self):
-        print "ConvDialogGUI.selOutDir(): Not implemented yet"
+        print "ConvDialogUI.selOutDir(): Not implemented yet"
 
     def indirChanged(self):
-        print "ConvDialogGUI.indirChanged(): Not implemented yet"
+        print "ConvDialogUI.indirChanged(): Not implemented yet"
 
     def selAll(self):
-        print "ConvDialogGUI.selAll(): Not implemented yet"
+        print "ConvDialogUI.selAll(): Not implemented yet"
 
     def selNone(self):
-        print "ConvDialogGUI.selNone(): Not implemented yet"
+        print "ConvDialogUI.selNone(): Not implemented yet"
 
     def outfmtClicked(self,a0):
-        print "ConvDialogGUI.outfmtClicked(QListViewItem*): Not implemented yet"
+        print "ConvDialogUI.outfmtClicked(QListViewItem*): Not implemented yet"
 
     def about(self):
-        print "ConvDialogGUI.about(): Not implemented yet"
+        print "ConvDialogUI.about(): Not implemented yet"
 
     def fileClicked(self,a0):
-        print "ConvDialogGUI.fileClicked(QListBoxItem*): Not implemented yet"
+        print "ConvDialogUI.fileClicked(QListBoxItem*): Not implemented yet"
 
     def refreshClicked(self):
-        print "ConvDialogGUI.refreshClicked(): Not implemented yet"
+        print "ConvDialogUI.refreshClicked(): Not implemented yet"
+
+    def outfmtSelected(self,a0):
+        print "ConvDialogUI.outfmtSelected(QListViewItem*): Not implemented yet"
 
     def __tr(self,s,c = None):
-        return qApp.translate("ConvDialogGUI",s,c)
+        return qApp.translate("ConvDialogUI",s,c)

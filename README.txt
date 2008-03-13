@@ -1,5 +1,5 @@
-d2d data file conversion utility
-================================
+dconv data file conversion utility
+==================================
 
 :Author: Georg Brandl
 :Last updated: Feb 8, 2008
@@ -176,6 +176,10 @@ Output format
     All strings given here are written to the output file after all
     data records, one string per line.  You can use the same
     substitution mechanism as for `prologue`.
+
+`filename_ext` : a string
+
+    A hint for the output filename extension.
 
 
 Additional variables available for code execution

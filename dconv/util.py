@@ -1,6 +1,6 @@
 """
-    d2d.util
-    ~~~~~~~~
+    dconv.util
+    ~~~~~~~~~~
 
     :author: Georg Brandl
     :license: GPL
@@ -25,8 +25,12 @@ def xdir(o):
 
 class Namespace(dict):
     def __init__(self, *args, **kwds):
+	dict.__init__(self, *args, **kwds)
         self.__dict__.update(self)
 
+    def update(self, other):
+        dict.update(self, other)
+        self.__dict__.update(other)
 
 class Record(tuple):
     def __new__(cls, args):
